@@ -1,3 +1,0 @@
-displayName = Gunplay
-author = Aeterna
-version = 0.0.1

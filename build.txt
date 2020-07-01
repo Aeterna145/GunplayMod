@@ -1,0 +1,3 @@
+displayName = Gunplay
+author = Aeterna, Terra, RedneckJäger
+version = 0.0.1
