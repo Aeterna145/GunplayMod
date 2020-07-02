@@ -1,4 +1,6 @@
-﻿using Gunplay.Items.GunParts;
+﻿using Gunplay.Items.GunParts.Barrels;
+using Gunplay.Items.GunParts.Chambers;
+using Gunplay.Items.GunParts.Handles;
 using Terraria.ID;
 using Terraria.ModLoader;
 
