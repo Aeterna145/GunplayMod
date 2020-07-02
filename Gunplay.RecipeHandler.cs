@@ -16,6 +16,7 @@ namespace Gunplay
         /// <para><paramref name="part3"/> - Gun part</para>
         /// <para><paramref name="part4"/> - Gun part</para>
         /// <para><paramref name="part5"/> - Gun part</para>
+        /// <para><paramref name="part6"/> - Gun part</para>
         /// </summary>
         public static void GunRecipe(Mod mod, int tileID, int result, int part1 = 0, int part2 = 0, int part3 = 0, int part4 = 0)
         {
@@ -29,8 +30,10 @@ namespace Gunplay
                 recipe.AddIngredient(part3);
             if (part4 != 0)
                 recipe.AddIngredient(part4);
-            if(part5 != 0)
+            if (part5 != 0)
                 recipe.AddIngredient(part5);
+            if (part6 != 0)
+                recipe.AddIngredient(part6);
 
             recipe.AddTile(tileID);
             recipe.SetResult(result);
