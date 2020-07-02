@@ -12,7 +12,7 @@ namespace Gunplay.Items.GunParts
             item.height = 14;
             item.rare = ItemRarityID.White;
             item.maxStack = 99;
-            item.value = Item.sellPrice(silver: 75);
+            item.value = Item.sellPrice(silver: 7);
         }
     }
 }

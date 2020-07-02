@@ -92,11 +92,9 @@ namespace Gunplay.UI
                     {
                         Player player = Main.player[Main.myPlayer];
                         Main.LocalPlayer.BuyItem(dismantleFee, -1);
-                        bool favorited = _vanillaItemSlot.Item.favorited;
                         int stack = _vanillaItemSlot.Item.stack;
                         Item reforgeItem = new Item();
                         reforgeItem.netDefaults(_vanillaItemSlot.Item.netID);
-                        reforgeItem = reforgeItem.CloneWithModdedDataFrom(_vanillaItemSlot.Item);
                         switch (_vanillaItemSlot.Item.type)
                         {
                             case ItemID.Sandgun:
@@ -115,14 +113,13 @@ namespace Gunplay.UI
                             case ItemID.Uzi:
                                 break;
                         }
-                        _vanillaItemSlot.Item = reforgeItem.Clone();
                         _vanillaItemSlot.Item.position.X = Main.LocalPlayer.position.X + (float)(Main.LocalPlayer.width / 2) - (float)(_vanillaItemSlot.Item.width / 2);
                         _vanillaItemSlot.Item.position.Y = Main.LocalPlayer.position.Y + (float)(Main.LocalPlayer.height / 2) - (float)(_vanillaItemSlot.Item.height / 2);
-                        _vanillaItemSlot.Item.favorited = favorited;
                         _vanillaItemSlot.Item.stack = stack;
                         ItemLoader.PostReforge(_vanillaItemSlot.Item);
                         ItemText.NewText(_vanillaItemSlot.Item, _vanillaItemSlot.Item.stack, true, false);
                         Main.PlaySound(SoundID.Item37, -1, -1);
+                        _vanillaItemSlot.Item.TurnToAir();
                     }
                 }
                 else
