@@ -29,6 +29,7 @@ namespace Gunplay
             return base.Autoload(ref name);
         }
 
+        #region METHODSWAPPING
         private void Main_GUIChatDrawInner(On.Terraria.Main.orig_GUIChatDrawInner orig, Main self) // I can't be asked to actually method swap this in a way where I don't copy over all the code. I'm lazy. Yeah.
         {
             if (player[myPlayer].talkNPC < 0 && player[myPlayer].sign == -1)
@@ -1345,6 +1346,7 @@ namespace Gunplay
             UILinkPointNavigator.SetPosition(2502, vector9 + stringSize3 * 0.5f);
             UILinkPointNavigator.Shortcuts.NPCCHAT_ButtonsRight = true;
         }
+        #endregion METHODSWAPPING
 
         public override void OnChatButtonClicked(NPC npc, bool firstButton)
         {
