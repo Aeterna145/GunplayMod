@@ -19,14 +19,10 @@ namespace Gunplay
         private void HookAdjustButton(ILContext il)
         {
             var c = new ILCursor(il).Goto(0);
-
             if (!c.TryGotoNext(i => i.MatchLdcI4(NPCID.ArmsDealer))) throw new Exception("Can't patch Arms Dealer shop button");
             if (!c.TryGotoNext(i => i.MatchLdcI4(NPCID.ArmsDealer))) throw new Exception("Can't patch Arms Dealer shop button");
-
             c.Index += 2;
-
             c.EmitDelegate<Func<string>>(() => "Gunplay Mod Dismantle Gun Function");
-
             c.Emit(Stloc_S, (byte)10);
         }
 
