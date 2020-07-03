@@ -10,9 +10,6 @@ namespace Gunplay
 {
     public partial class Gunplay : Mod
     {
-        public int SpreadAngle = 0;
-        public int FireRate = 0;
-
         internal bool cheatUIOpen = false;
 
         internal static Gunplay Instance;
