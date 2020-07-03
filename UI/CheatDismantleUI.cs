@@ -112,14 +112,21 @@ namespace Gunplay.UI
                                 Item.NewItem(player.Hitbox, ItemType<SandgunBarrel>());
                                 break;
                             case ItemID.Shotgun:
+                                Item.NewItem(player.Hitbox, ItemID.Shotgun);
                                 break;
                             case ItemID.Handgun:
+                                Item.NewItem(player.Hitbox, ItemType<HandgunHandle>());
+                                Item.NewItem(player.Hitbox, ItemType<HandgunChamber>());
+                                Item.NewItem(player.Hitbox, ItemType<HandgunBarrel>());
                                 break;
                             case ItemID.SniperRifle:
+                                Item.NewItem(player.Hitbox, ItemID.SniperRifle);
                                 break;
                             case ItemID.TacticalShotgun:
+                                Item.NewItem(player.Hitbox, ItemID.TacticalShotgun);
                                 break;
                             case ItemID.Uzi:
+                                Item.NewItem(player.Hitbox, ItemID.Uzi);
                                 break;
                         }
                         _vanillaItemSlot.Item.position.X = Main.LocalPlayer.position.X + (float)(Main.LocalPlayer.width / 2) - (float)(_vanillaItemSlot.Item.width / 2);

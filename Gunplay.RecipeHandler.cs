@@ -55,6 +55,7 @@ namespace Gunplay
         public void VanillaGuns()
         {
             GunRecipe(this, TileID.Anvils, ItemID.Sandgun, ModContent.ItemType<SandgunBarrel>(), ModContent.ItemType<SandgunChamber>(), ModContent.ItemType<SandgunHandle>());
+            GunRecipe(this, TileID.Anvils, ItemID.Handgun, ModContent.ItemType<HandgunBarrel>(), ModContent.ItemType<HandgunChamber>(), ModContent.ItemType<HandgunHandle>());
         }
     }
 }

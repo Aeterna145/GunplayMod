@@ -23,6 +23,8 @@ namespace Gunplay
 {
     class GunplayNPC : GlobalNPC
     {
+        internal Mod steviesMod = ModLoader.GetMod("SteviesMod");
+
         public override bool Autoload(ref string name)
         {
             On.Terraria.Main.GUIChatDrawInner += Main_GUIChatDrawInner;
