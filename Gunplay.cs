@@ -1,3 +1,4 @@
+using Gunplay.Items.Guns;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,14 @@ namespace Gunplay
 {
     public partial class Gunplay : Mod
     {
+        internal static Gunplay instance = ModContent.GetInstance<Gunplay>();
+        public static Dictionary<string, PartType> parts = new Dictionary<string, PartType>();
+        public static Dictionary<string, EffectType> effects = new Dictionary<string, EffectType>();
+        private List<object[]> modPartRecipes;
+        private List<object[]> modToolRecipes;
+
+        public static bool doneCrossModContent;
+
         internal bool cheatUIOpen = false;
 
         internal static Gunplay Instance;
@@ -25,6 +34,10 @@ namespace Gunplay
             herosMod = ModLoader.GetMod("HEROsMod");
             cheatSheet = ModLoader.GetMod("CheatSheet");
 
+            doneCrossModContent = false;
+
+            GunHelper.AddPart(PartData.UnknownPart);
+
             if (!Main.dedServ)
             {
                 DismantleUserInterface = new UserInterface();
@@ -35,6 +48,11 @@ namespace Gunplay
         public override void Unload()
         {
             Instance = null;
+            instance = null;
+            parts = null;
+            effects = null;
+            modPartRecipes = null;
+            modToolRecipes = null;
 
             base.Unload();
         }
@@ -143,5 +161,86 @@ namespace Gunplay
             if (!hasPermission)
                 cheatUIOpen = false;
         }
+
+        public override object Call(params object[] args)
+        {
+            try
+            {
+                string message = args[0] as string;
+                if (message == "CheckEffect") //Returns -1 if effect isn't present or item used isn't a ConstructGun. Returns level of effect of effect is present.
+                {
+                    if ((args[1] as Item).modItem is ConstructGun cTool)
+                    {
+                        if (cTool.effects.ContainsKey(args[2] as string))
+                        {
+                            return cTool.effects[args[2] as string];
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+                else if (message == "GetItemType") //Returns itemType if item passed in is a ConstructGun. Returns an error otherwise.
+                {
+                    if ((args[1] as Item).netID == 0)
+                    {
+                        return "GetItemType called too early!";
+                    }
+                    else if ((args[1] as Item).modItem is ConstructGun cTool)
+                    {
+                        return cTool.itemType;
+                    }
+                    else
+                    {
+                        return "GetItemType called on an item that is not a ConstructGun!";
+                    }
+                }
+                if (doneCrossModContent) //Done so the following Calls can't be done after mod load. like mid-game.
+                {
+                    throw new Exception($"Call Error: Gunplay expects the message you sent, \"{message}\", before AddRecipes(). A good place to put this Call() is in PostSetupContent().");
+                }
+                if (message == "AddPart") //Adds a new PartType to parts.
+                {
+                    string materialName = args[2] as string;
+                    string type = args[5] as string;
+                    GunHelper.AddPart(args[1] as string, materialName, Convert.ToSingle(args[3]), Convert.ToSingle(args[4]), args[5] as string, args[6] as string, type, Convert.ToSingle(args[7]), Convert.ToInt32(args[8]), args[9] as Dictionary<string, int>);
+                    Logger.Info($"Call Info: Part {materialName} {type} added");
+                    return $"Part {materialName} {type} added";
+                }
+                else if (message == "AddPartRecipe") //Adds the ags to modPartRecipes to add later in AddRecipes.
+                {
+                    modPartRecipes.Add(args);
+                    return "Part Recipe added to list";
+                }
+                else if (message == "AddToolRecipe") //Adds the args to modToolRecipes to add later in AddRecipes.
+                {
+                    modToolRecipes.Add(args);
+                    return "Tool Recipe added to list";
+                }
+                else if (message == "AddEffect") //Adds a new EffectType to effects.
+                {
+                    string name = args[2] as string;
+                    GunHelper.AddEffect(args[1] as string, name, Convert.ToInt32(args[3]), Convert.ToBoolean(args[4]), args[5] as string);
+                    Logger.Info($"Call Info: Effects {name} added");
+                    return $"Effects {name} added";
+                }
+                else //You dun fucked up.
+                {
+                    Logger.Error("Call Error: Unknown Message: " + message);
+                    return "Call Error: Unknown Message: " + message;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Call Error: " + e.StackTrace + e.Message);
+                return "Failure, see logs";
+            }
+        }
+
     }
 }

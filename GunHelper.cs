@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 
 namespace Gunplay
 {
-	public static class TCHelper
+	public static class GunHelper
 	{
 		public static void AddPart(string key, string materialName, float offsetX, float offsetY, string useTexture, string invTexture, string type, float layer, int power, Dictionary<string, int> effects = null)
 		{

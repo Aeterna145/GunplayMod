@@ -17,7 +17,7 @@ namespace Gunplay.Items.Guns
     {
 		public override string Texture => "Terraria/Item_1";
 
-		public int damage = TCHelper.DamageFromParts(parts);
+		public int damage = GunHelper.DamageFromParts(parts);
 		public string itemType;
 
 		public List<string> parts;
@@ -44,8 +44,8 @@ namespace Gunplay.Items.Guns
 
 			item.noUseGraphic = true; //hmm yes let me remove the held item layer instead
 
-			damage = TCHelper.DamageFromParts(parts);
-			TCHelper.SetDefaults(item);
+			damage = GunHelper.DamageFromParts(parts);
+			GunHelper.SetDefaults(item);
 		}
 
 		public override void ModifyTooltips(List<TooltipLine> tooltips)
@@ -54,14 +54,14 @@ namespace Gunplay.Items.Guns
 			{
 				if (line.Name == "ItemName" && line.mod == "Terraria")
 				{
-					line.text = TCHelper.GetToolName(parts) + " " + itemType;
+					line.text = GunHelper.GetToolName(parts) + " " + itemType;
 				}
 			}
 
 			string effectsText = "";
 			foreach (KeyValuePair<string, int> pair in effects)
 			{
-				EffectType effectType = TCHelper.GetEffectType(pair.Key);
+				EffectType effectType = GunHelper.GetEffectType(pair.Key);
 				if (effectsText != "")
 				{
 					effectsText += "\n";
@@ -83,12 +83,12 @@ namespace Gunplay.Items.Guns
 				tooltips.Add(new TooltipLine(mod, "TerrariaConstruct:ShiftMessageLine", "Press Shift to see descriptions!"));
 			}
 
-			if (TCHelper.CheckForBrokenParts(parts))
+			if (GunHelper.CheckForBrokenParts(parts))
 			{
 				tooltips.Add(new TooltipLine(mod, "TerrariaConstruct:BrokenPartsLine", "This tool has broken parts! Did you disable a mod since you last played?"));
 			}
 
-			tooltips.Add(new TooltipLine(mod, "h", "Damage = " + TCHelper.DamageFromParts(parts)));
+			tooltips.Add(new TooltipLine(mod, "h", "Damage = " + GunHelper.DamageFromParts(parts)));
 		}
 
 		public override ModItem Clone(Item item)
@@ -102,26 +102,26 @@ namespace Gunplay.Items.Guns
 
 		public override bool PreDrawInInventory(SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
 		{
-			item.SetNameOverride(TCHelper.GetToolName(parts) + " " + itemType);
+			item.SetNameOverride(GunHelper.GetToolName(parts) + " " + itemType);
 			return false;
 		}
 
 		public override bool PreDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
 		{
-			item.SetNameOverride(TCHelper.GetToolName(parts) + " " + itemType);
+			item.SetNameOverride(GunHelper.GetToolName(parts) + " " + itemType);
 			return false;
 		}
 
 		public override void PostDrawInInventory(SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
 		{
-			parts = parts.OrderBy(x => TCHelper.GetPartType(x).layer).ToList();
+			parts = parts.OrderBy(x => GunHelper.GetPartType(x).layer).ToList();
 			List<Texture2D> textures = new List<Texture2D>();
 			List<Vector2> offsets = new List<Vector2>();
 			foreach (string key in parts)
 			{
 				try
 				{
-					GunPart partType = TCHelper.GetPartType(key);
+					GunPart partType = GunHelper.GetPartType(key);
 					Texture2D texture = ModContent.GetTexture(partType.useTexture);
 					textures.Add(texture);
 					Vector2 offset = partType.offset;
@@ -145,12 +145,12 @@ namespace Gunplay.Items.Guns
 			Vector2 position = item.position - Main.screenPosition + new Vector2(item.width / 2, item.height / 2);
 			List<Texture2D> textures = new List<Texture2D>();
 			List<Vector2> offsets = new List<Vector2>();
-			parts = parts.OrderBy(x => TCHelper.GetPartType(x).layer).ToList();
+			parts = parts.OrderBy(x => GunHelper.GetPartType(x).layer).ToList();
 			foreach (string key in parts)
 			{
 				try
 				{
-					GunPart partType = TCHelper.GetPartType(key);
+					GunPart partType = GunHelper.GetPartType(key);
 					Texture2D tex = ModContent.GetTexture(partType.useTexture);
 					textures.Add(tex);
 					Vector2 offset = partType.offset;
