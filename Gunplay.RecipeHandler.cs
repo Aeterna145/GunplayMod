@@ -1,4 +1,6 @@
-﻿using Gunplay.Items.GunParts;
+﻿using Gunplay.Items.GunParts.Barrels;
+using Gunplay.Items.GunParts.Chambers;
+using Gunplay.Items.GunParts.Handles;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -18,7 +20,7 @@ namespace Gunplay
         /// <para><paramref name="part5"/> - Gun part</para>
         /// <para><paramref name="part6"/> - Gun part</para>
         /// </summary>
-        public static void GunRecipe(Mod mod, int tileID, int result, int part1 = 0, int part2 = 0, int part3 = 0, int part4 = 0)
+        public static void GunRecipe(Mod mod, int tileID, int result, int part1 = 0, int part2 = 0, int part3 = 0, int part4 = 0, int part5 = 0, int part6 = 0)
         {
             ModRecipe recipe = new ModRecipe(mod);
 

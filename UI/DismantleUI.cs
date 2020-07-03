@@ -1,4 +1,7 @@
 ﻿using Gunplay.Items.GunParts;
+using Gunplay.Items.GunParts.Barrels;
+using Gunplay.Items.GunParts.Chambers;
+using Gunplay.Items.GunParts.Handles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
