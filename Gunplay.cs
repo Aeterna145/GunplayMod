@@ -26,6 +26,7 @@ namespace Gunplay
         internal bool cheatUIOpen = false;
 
         internal static Gunplay Instance;
+
         internal UserInterface DismantleUserInterface;
         internal UserInterface CheatDismantleUserInterface;
         internal Mod herosMod;
