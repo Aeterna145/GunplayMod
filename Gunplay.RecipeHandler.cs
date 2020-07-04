@@ -1,6 +1,10 @@
-﻿using Gunplay.Items.GunParts.Barrels;
+﻿using Gunplay.Items;
+using Gunplay.Items.GunParts.Barrels;
 using Gunplay.Items.GunParts.Chambers;
 using Gunplay.Items.GunParts.Handles;
+using System;
+using System.Collections.Generic;
+using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -42,11 +46,83 @@ namespace Gunplay
             recipe.AddRecipe();
         }
 
+        public static void CreatePartRecipe(Mod mod, int material, int amount, int tile, string partKey)
+        {
+            PartRecipe recipe = new PartRecipe(mod, partKey);
+            recipe.AddIngredient(material, amount);
+            recipe.AddTile(tile);
+            recipe.SetResult(ModContent.ItemType<ConstructPart>());
+            recipe.AddRecipe();
+        }
+
+        public static void CreateToolRecipe(Mod mod, int tile, string itemType, List<string> partTypes)
+        {
+            ToolRecipe recipe = new ToolRecipe(mod, itemType, partTypes);
+            for (int i = 0; i < partTypes.Count; i++)
+            {
+                recipe.AddIngredient(ModContent.ItemType<ConstructPart>(), 1);
+            }
+            recipe.AddTile(tile);
+            recipe.SetResult(ModContent.ItemType<ConstructTool>());
+            recipe.AddRecipe();
+        }
+
         public override void AddRecipes()
         {
             VanillaGuns();
 
+            CreatePartRecipe(Instance, ItemID.CopperBar, 8, TileID.Anvils, PartData.CopperPickaxeHead.key);
+
+            foreach (object[] args in modPartRecipes)
+            {
+                try
+                {
+                    CreatePartRecipe(Instance, Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), Convert.ToInt32(args[3]), args[4] as string);
+                    Logger.Info("Part Recipe added for part with key " + args[4]);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error adding part recipe: " + e.StackTrace + e.Message);
+                }
+            }
+
+            CreateToolRecipe(Instance, TileID.Anvils, "Pickaxe", new List<string> { "Pickaxe Head", "Tool Rod" });
+            CreateToolRecipe(Instance, TileID.Anvils, "Axe", new List<string> { "Axe Head", "Tool Rod" });
+            CreateToolRecipe(Instance, TileID.Anvils, "Hammer", new List<string> { "Hammer Head", "Tool Rod" });
+
+            foreach (object[] args in modToolRecipes)
+            {
+                try
+                {
+                    CreateToolRecipe(Instance, Convert.ToInt32(args[1]), args[2] as string, args[3] as List<string>);
+                    Logger.Info("Tool Recipe added for tool " + args[2]);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error adding tool recipe: " + e.StackTrace + e.Message);
+                }
+            }
+
+            doneCrossModContent = true;
+            modPartRecipes = null;
+            modToolRecipes = null;
+
             base.AddRecipes();
+        }
+
+        public override void PostAddRecipes()
+        {
+            //https://github.com/gardenappl/DyeEasy/blob/master/DyeEasy.cs
+            for (int i = 0; i < Main.recipe.Length; i++)
+            {
+                Recipe recipe = Main.recipe[i];
+                if (recipe is PartRecipe pRecipe)
+                {
+                    (recipe.createItem.modItem as ConstructPart).partKey = pRecipe.partKey;
+                }
+            }
+
+            base.PostAddRecipes();
         }
 
         /// <summary>
