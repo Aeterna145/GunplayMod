@@ -1,5 +1,6 @@
-using Gunplay.Items.Guns;
+using Gunplay.Items;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -11,9 +12,12 @@ namespace Gunplay
 {
     public partial class Gunplay : Mod
     {
-        internal static Gunplay instance = ModContent.GetInstance<Gunplay>();
-        public static Dictionary<string, PartType> parts = new Dictionary<string, PartType>();
-        public static Dictionary<string, EffectType> effects = new Dictionary<string, EffectType>();
+        public int SpreadAngle = 0;
+        public int FireRate = 0;
+
+        public static Dictionary<string, PartType> parts; //TODO: PartType
+        public static Dictionary<string, EffectType> effects; //TODO: EffectType
+
         private List<object[]> modPartRecipes;
         private List<object[]> modToolRecipes;
 
@@ -22,6 +26,7 @@ namespace Gunplay
         internal bool cheatUIOpen = false;
 
         internal static Gunplay Instance;
+
         internal UserInterface DismantleUserInterface;
         internal UserInterface CheatDismantleUserInterface;
         internal Mod herosMod;
@@ -31,30 +36,116 @@ namespace Gunplay
         {
             Instance = this;
 
-            herosMod = ModLoader.GetMod("HEROsMod");
-            cheatSheet = ModLoader.GetMod("CheatSheet");
-
+            parts = new Dictionary<string, PartType>();
+            effects = new Dictionary<string, EffectType>();
+            modPartRecipes = new List<object[]>();
+            modToolRecipes = new List<object[]>();
             doneCrossModContent = false;
 
-            GunHelper.AddPart(PartData.UnknownPart);
+            herosMod = ModLoader.GetMod("HEROsMod");
+            cheatSheet = ModLoader.GetMod("CheatSheet");
 
             if (!Main.dedServ)
             {
                 DismantleUserInterface = new UserInterface();
                 CheatDismantleUserInterface = new UserInterface();
             }
+
+            GHelper.AddPart(PartData.UnknownPart);
+
+            GHelper.AddPart(PartData.CopperPickaxeHead);
         }
 
         public override void Unload()
         {
             Instance = null;
-            instance = null;
+
             parts = null;
             effects = null;
             modPartRecipes = null;
             modToolRecipes = null;
 
             base.Unload();
+        }
+
+        public override object Call(params object[] args)
+        {
+            try
+            {
+                string message = args[0] as string;
+                if (message == "CheckEffect") //Returns -1 if effect isn't present or item used isn't a ConstructTool. Returns level of effect of effect is present.
+                {
+                    if ((args[1] as Item).modItem is ConstructTool cTool)
+                    {
+                        if (cTool.effects.ContainsKey(args[2] as string))
+                        {
+                            return cTool.effects[args[2] as string];
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+                else if (message == "GetItemType") //Returns itemType if item passed in is a ConstructTool. Returns an error otherwise.
+                {
+                    if ((args[1] as Item).netID == 0)
+                    {
+                        return "GetItemType called too early!";
+                    }
+                    else if ((args[1] as Item).modItem is ConstructTool cTool)
+                    {
+                        return cTool.itemType;
+                    }
+                    else
+                    {
+                        return "GetItemType called on an item that is not a ConstructTool!";
+                    }
+                }
+                if (doneCrossModContent) //Done so the following Calls can't be done after mod load. like mid-game.
+                {
+                    throw new Exception($"Call Error: TerrariaConstruct expects the message you sent, \"{message}\", before AddRecipes(). A good place to put this Call() is in PostSetupContent().");
+                }
+                if (message == "AddPart") //Adds a new PartType to parts.
+                {
+                    string materialName = args[2] as string;
+                    string type = args[5] as string;
+                    GHelper.AddPart(args[1] as string, materialName, Convert.ToSingle(args[3]), Convert.ToSingle(args[4]), args[5] as string, args[6] as string, type, Convert.ToSingle(args[7]), Convert.ToInt32(args[8]), args[9] as Dictionary<string, int>);
+                    Logger.Info($"Call Info: Part {materialName} {type} added");
+                    return $"Part {materialName} {type} added";
+                }
+                else if (message == "AddPartRecipe") //Adds the ags to modPartRecipes to add later in AddRecipes.
+                {
+                    modPartRecipes.Add(args);
+                    return "Part Recipe added to list";
+                }
+                else if (message == "AddToolRecipe") //Adds the args to modToolRecipes to add later in AddRecipes.
+                {
+                    modToolRecipes.Add(args);
+                    return "Tool Recipe added to list";
+                }
+                else if (message == "AddEffect") //Adds a new EffectType to effects.
+                {
+                    string name = args[2] as string;
+                    GHelper.AddEffect(args[1] as string, name, Convert.ToInt32(args[3]), Convert.ToBoolean(args[4]), args[5] as string);
+                    Logger.Info($"Call Info: Effects {name} added");
+                    return $"Effects {name} added";
+                }
+                else //You dun fucked up.
+                {
+                    Logger.Error("Call Error: Unknown Message: " + message);
+                    return "Call Error: Unknown Message: " + message;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Call Error: " + e.StackTrace + e.Message);
+                return "Failure, see logs";
+            }
         }
 
         public override void PostSetupContent()
@@ -114,6 +205,40 @@ namespace Gunplay
                     InterfaceScaleType.UI)
                 );
             }
+
+            int mouseItemIndex = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Interact Item Icon"));
+            if (mouseItemIndex != -1 && Main.LocalPlayer.HeldItem.type == ModContent.ItemType<ConstructTool>())
+            {
+                layers.RemoveAt(mouseItemIndex);
+                layers.Insert(mouseItemIndex, new LegacyGameInterfaceLayer
+                    ("TerrariaConstruct:ItemIcon", delegate
+                    {
+                        Item heldItem = Main.LocalPlayer.inventory[Main.LocalPlayer.selectedItem];
+                        if (heldItem.type == ModContent.ItemType<ConstructTool>() && Main.LocalPlayer.showItemIcon)
+                        {
+                            Main.LocalPlayer.showItemIcon = false;
+                            Main.LocalPlayer.showItemIconR = false;
+                            List<Texture2D> textures = new List<Texture2D>();
+                            foreach (string key in (heldItem.modItem as ConstructTool).parts)
+                            {
+                                try
+                                {
+                                    Texture2D tex = ModContent.GetTexture(GHelper.GetPartType(key).useTexture);
+                                    textures.Add(tex);
+                                }
+                                catch (Exception e)
+                                {
+                                    Gunplay.Instance.Logger.Error("Something failed when getting invTexture in PreDrawInInventory! " + e.Message);
+                                }
+                            }
+                            foreach (Texture2D texture in textures)
+                            {
+                                Main.spriteBatch.Draw(texture, new Vector2(Main.mouseX + 10, Main.mouseY + 10), new Rectangle(0, 0, texture.Width, texture.Height), Color.White, 0f, default, Main.cursorScale, SpriteEffects.None, 0f);
+                            }
+                        }
+                        return true;
+                    }));
+            }
         }
 
         public void SetupModIntegration(Mod mod)
@@ -161,86 +286,5 @@ namespace Gunplay
             if (!hasPermission)
                 cheatUIOpen = false;
         }
-
-        public override object Call(params object[] args)
-        {
-            try
-            {
-                string message = args[0] as string;
-                if (message == "CheckEffect") //Returns -1 if effect isn't present or item used isn't a ConstructGun. Returns level of effect of effect is present.
-                {
-                    if ((args[1] as Item).modItem is ConstructGun cTool)
-                    {
-                        if (cTool.effects.ContainsKey(args[2] as string))
-                        {
-                            return cTool.effects[args[2] as string];
-                        }
-                        else
-                        {
-                            return -1;
-                        }
-                    }
-                    else
-                    {
-                        return -1;
-                    }
-                }
-                else if (message == "GetItemType") //Returns itemType if item passed in is a ConstructGun. Returns an error otherwise.
-                {
-                    if ((args[1] as Item).netID == 0)
-                    {
-                        return "GetItemType called too early!";
-                    }
-                    else if ((args[1] as Item).modItem is ConstructGun cTool)
-                    {
-                        return cTool.itemType;
-                    }
-                    else
-                    {
-                        return "GetItemType called on an item that is not a ConstructGun!";
-                    }
-                }
-                if (doneCrossModContent) //Done so the following Calls can't be done after mod load. like mid-game.
-                {
-                    throw new Exception($"Call Error: Gunplay expects the message you sent, \"{message}\", before AddRecipes(). A good place to put this Call() is in PostSetupContent().");
-                }
-                if (message == "AddPart") //Adds a new PartType to parts.
-                {
-                    string materialName = args[2] as string;
-                    string type = args[5] as string;
-                    GunHelper.AddPart(args[1] as string, materialName, Convert.ToSingle(args[3]), Convert.ToSingle(args[4]), args[5] as string, args[6] as string, type, Convert.ToSingle(args[7]), Convert.ToInt32(args[8]), args[9] as Dictionary<string, int>);
-                    Logger.Info($"Call Info: Part {materialName} {type} added");
-                    return $"Part {materialName} {type} added";
-                }
-                else if (message == "AddPartRecipe") //Adds the ags to modPartRecipes to add later in AddRecipes.
-                {
-                    modPartRecipes.Add(args);
-                    return "Part Recipe added to list";
-                }
-                else if (message == "AddToolRecipe") //Adds the args to modToolRecipes to add later in AddRecipes.
-                {
-                    modToolRecipes.Add(args);
-                    return "Tool Recipe added to list";
-                }
-                else if (message == "AddEffect") //Adds a new EffectType to effects.
-                {
-                    string name = args[2] as string;
-                    GunHelper.AddEffect(args[1] as string, name, Convert.ToInt32(args[3]), Convert.ToBoolean(args[4]), args[5] as string);
-                    Logger.Info($"Call Info: Effects {name} added");
-                    return $"Effects {name} added";
-                }
-                else //You dun fucked up.
-                {
-                    Logger.Error("Call Error: Unknown Message: " + message);
-                    return "Call Error: Unknown Message: " + message;
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Call Error: " + e.StackTrace + e.Message);
-                return "Failure, see logs";
-            }
-        }
-
     }
 }
